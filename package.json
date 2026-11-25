@@ -10,7 +10,7 @@
     "build": "node scripts/build.js",
     "preview": "vite preview",
     "server": "node --env-file-if-exists=.env server/index.js",
-    "test": "node --env-file-if-exists=.env tests/projects.test.js && node --env-file-if-exists=.env tests/journey.test.js && node --env-file-if-exists=.env tests/phase06.test.js && node --env-file-if-exists=.env tests/server.test.js && node --env-file-if-exists=.env tests/db.test.js && node --env-file-if-exists=.env tests/auth.test.js && node --env-file-if-exists=.env tests/portfolio.test.js && node --env-file-if-exists=.env tests/admin.test.js",
+    "test": "node --env-file-if-exists=.env tests/projects.test.js && node --env-file-if-exists=.env tests/journey.test.js && node --env-file-if-exists=.env tests/phase06.test.js && node --env-file-if-exists=.env tests/server.test.js && node --env-file-if-exists=.env tests/db.test.js && node --env-file-if-exists=.env tests/auth.test.js && node --env-file-if-exists=.env tests/portfolio.test.js && node --env-file-if-exists=.env tests/admin.test.js && node --env-file-if-exists=.env tests/router.test.js",
     "start": "node --env-file-if-exists=.env server/index.js"
   },
   "dependencies": {

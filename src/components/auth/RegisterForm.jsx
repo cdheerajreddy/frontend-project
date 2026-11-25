@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { useRouter, Link } from '../../router/Router.jsx';
+import { useRouter, Link, isStaticDemoMode } from '../../router/Router.jsx';
 
 /**
  * Student Registration Form
@@ -124,6 +124,33 @@ export function RegisterForm() {
               Get started in under five minutes. Create your personal profile and showcase your developer projects.
             </p>
           </div>
+
+          {/* Static Demo Notice */}
+          {isStaticDemoMode() && (
+            <div
+              role="status"
+              style={{
+                backgroundColor: 'var(--accent-blue-light)',
+                border: '1px solid var(--accent-blue-border)',
+                borderRadius: 'var(--radius-md)',
+                padding: 'var(--space-4)',
+                marginBottom: 'var(--space-6)',
+                fontSize: 'var(--font-size-sm)',
+                lineHeight: '1.5',
+                color: 'var(--text-primary)'
+              }}
+            >
+              <div style={{ fontWeight: 600, color: 'var(--accent-blue)', marginBottom: '4px' }}>
+                GitHub Pages Static Showcase
+              </div>
+              <p style={{ margin: '0 0 var(--space-2)' }}>
+                Account registration and portfolio persistence require the native Node.js HTTP backend and JSON storage. GitHub Pages serves static files only.
+              </p>
+              <p style={{ margin: 0, fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>
+                To register accounts and build custom portfolios, run the project locally with <code>npm run dev</code>. You can also explore the <Link href="/demo" style={{ color: 'var(--accent-blue)', fontWeight: 600, textDecoration: 'underline' }}>Demo Portfolio</Link>.
+              </p>
+            </div>
+          )}
 
           {/* General Alert Banner */}
           {generalError && (

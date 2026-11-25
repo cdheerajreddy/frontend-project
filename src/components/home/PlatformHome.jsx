@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from '../../router/Router.jsx';
+import { Link, isStaticDemoMode } from '../../router/Router.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
 export function PlatformHome() {
@@ -163,6 +163,32 @@ export function PlatformHome() {
           </div>
         )}
       </header>
+
+      {/* GitHub Pages Static Demo Notification */}
+      {isStaticDemoMode() && (
+        <aside
+          role="region"
+          aria-label="GitHub Pages static demonstration mode notice"
+          style={{
+            backgroundColor: 'var(--accent-blue-light)',
+            borderBottom: '1px solid var(--accent-blue-border)',
+            padding: '10px 16px',
+            fontSize: 'var(--font-size-xs)',
+            color: 'var(--text-primary)',
+            textAlign: 'center'
+          }}
+        >
+          <div className="container">
+            <span>
+              <strong>GitHub Pages Static Showcase:</strong> Instant preview mode. Explore the{' '}
+              <Link href="/demo" style={{ fontWeight: 600, color: 'var(--accent-blue)', textDecoration: 'underline' }}>
+                Live Demo Portfolio
+              </Link>
+              . Student registration, builder persistence, and moderation require the local Node.js backend (<code>npm run dev</code>).
+            </span>
+          </div>
+        </aside>
+      )}
 
       {/* Main Hero & Portals */}
       <main>

@@ -1,22 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import {
+  getRouterBase,
+  normalizePath,
+  withBase,
+  isStaticDemoMode
+} from './routerUtils.js';
+
+export { getRouterBase, normalizePath, withBase, isStaticDemoMode };
 
 const RouterContext = createContext({
   currentPath: '/',
-  navigate: () => {}
+  navigate: () => {},
+  base: ''
 });
 
 /**
  * Lightweight, zero-dependency History API router provider.
- * Intercepts popstate and supports programmatic pushState/replaceState navigation.
+ * Intercepts popstate, supports base-prefixed navigation, and handles GitHub Pages subpaths.
  */
 export function Router({ children }) {
-  const [currentPath, setCurrentPath] = useState(
-    typeof window !== 'undefined' ? window.location.pathname : '/'
+  const [currentPath, setCurrentPath] = useState(() =>
+    typeof window !== 'undefined' ? normalizePath(window.location.pathname) : '/'
   );
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
+      setCurrentPath(normalizePath(window.location.pathname));
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -26,40 +35,53 @@ export function Router({ children }) {
   const navigate = (to, { replace = false } = {}) => {
     if (typeof window === 'undefined') return;
 
+    const fullUrl = withBase(to);
+    const normalized = normalizePath(to);
+
     if (replace) {
-      window.history.replaceState(null, '', to);
+      window.history.replaceState(null, '', fullUrl);
     } else {
-      window.history.pushState(null, '', to);
+      window.history.pushState(null, '', fullUrl);
     }
 
-    setCurrentPath(to);
+    setCurrentPath(normalized);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <RouterContext.Provider value={{ currentPath, navigate }}>
+    <RouterContext.Provider value={{ currentPath, navigate, base: getRouterBase() }}>
       {children}
     </RouterContext.Provider>
   );
 }
 
 /**
- * Hook to access current navigation path and navigate function.
+ * Hook to access current navigation path, navigate function, and base path.
  */
 export function useRouter() {
   return useContext(RouterContext);
 }
 
 /**
- * Accessible navigational anchor tag that intercepts internal clicks.
+ * Accessible navigational anchor tag that intercepts internal clicks and maintains base repository prefix.
  */
 export function Link({ href, className = '', children, onClick, ...props }) {
   const { navigate } = useRouter();
 
+  const isHash = typeof href === 'string' && href.startsWith('#');
+  const isExternal =
+    typeof href === 'string' &&
+    (href.startsWith('http://') ||
+      href.startsWith('https://') ||
+      href.startsWith('mailto:') ||
+      props.target === '_blank');
+
+  const fullHref = isHash || isExternal ? href : withBase(href);
+
   const handleClick = (e) => {
     if (onClick) onClick(e);
 
-    // Allow default browser behavior for modifier keys or external links
+    // Allow default browser behavior for modifier keys or external/hash links
     if (
       e.defaultPrevented ||
       e.button !== 0 ||
@@ -67,11 +89,12 @@ export function Link({ href, className = '', children, onClick, ...props }) {
       e.altKey ||
       e.ctrlKey ||
       e.shiftKey ||
-      href.startsWith('http://') ||
-      href.startsWith('https://') ||
-      href.startsWith('mailto:') ||
-      props.target === '_blank'
+      isExternal
     ) {
+      return;
+    }
+
+    if (isHash) {
       return;
     }
 
@@ -80,7 +103,7 @@ export function Link({ href, className = '', children, onClick, ...props }) {
   };
 
   return (
-    <a href={href} className={className} onClick={handleClick} {...props}>
+    <a href={fullHref} className={className} onClick={handleClick} {...props}>
       {children}
     </a>
   );
@@ -91,7 +114,7 @@ export function Link({ href, className = '', children, onClick, ...props }) {
  */
 export function Route({ path, element }) {
   const { currentPath } = useRouter();
-  if (currentPath === path) {
+  if (currentPath === normalizePath(path)) {
     return element;
   }
   return null;

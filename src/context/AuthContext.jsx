@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { isStaticDemoMode } from '../router/Router.jsx';
 
 const AuthContext = createContext({
   user: null,
@@ -16,6 +17,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const refreshUser = useCallback(async () => {
+    if (isStaticDemoMode()) {
+      setUser(null);
+      setCsrfToken(null);
+      setLoading(false);
+      return null;
+    }
+
     try {
       const res = await fetch('/api/auth/me', {
         method: 'GET',
@@ -47,6 +55,12 @@ export function AuthProvider({ children }) {
   }, [refreshUser]);
 
   const login = async (username, password) => {
+    if (isStaticDemoMode()) {
+      throw new Error(
+        'GitHub Pages runs in static showcase mode without a Node.js backend. Administrator management and student login require running the application locally using "npm run dev".'
+      );
+    }
+
     let res;
     try {
       res = await fetch('/api/auth/login', {
@@ -85,6 +99,12 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (username, password, fullName) => {
+    if (isStaticDemoMode()) {
+      throw new Error(
+        'GitHub Pages runs in static showcase mode without a Node.js backend. Student registration and account creation require running the application locally using "npm run dev".'
+      );
+    }
+
     let res;
     try {
       res = await fetch('/api/auth/register', {
