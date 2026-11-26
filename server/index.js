@@ -5,7 +5,7 @@ import { getDatabase, initAdmin, closeDatabase } from './db/database.js';
 import { getSessionSecret } from './middleware/auth.js';
 
 const PORT = parseInt(process.env.PORT, 10) || 5050;
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 const IS_PROD = process.env.NODE_ENV === 'production';
 
 // Initialize JSON file storage (data/portfolio-data.json)

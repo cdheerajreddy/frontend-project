@@ -9,10 +9,24 @@ const __dirname = path.dirname(__filename);
 const DEFAULT_DATA_FILE = path.resolve(__dirname, '../../data/portfolio-data.json');
 
 /**
- * Get the path for the JSON data file.
+ * Resolve the JSON data file path.
+ * Priority:
+ * 1. customPath argument passed directly to function
+ * 2. process.env.DATA_FILE_PATH (explicit file path)
+ * 3. path.join(process.env.DATA_DIR, 'portfolio-data.json') when DATA_DIR is set (e.g. /var/data)
+ * 4. process.env.DATABASE_PATH (legacy environment alias)
+ * 5. DEFAULT_DATA_FILE (data/portfolio-data.json relative to project root)
  */
-function getDataFilePath(customPath) {
-  return customPath || process.env.DATA_FILE_PATH || process.env.DATABASE_PATH || DEFAULT_DATA_FILE;
+export function getDataFilePath(customPath) {
+  if (customPath) return customPath;
+  if (process.env.DATA_FILE_PATH) return process.env.DATA_FILE_PATH;
+  if (process.env.DATA_DIR) {
+    if (process.platform !== 'win32' || process.env.DATA_DIR.startsWith('/')) {
+      return path.posix.join(process.env.DATA_DIR, 'portfolio-data.json');
+    }
+    return path.join(process.env.DATA_DIR, 'portfolio-data.json');
+  }
+  return process.env.DATABASE_PATH || DEFAULT_DATA_FILE;
 }
 
 // In-memory cache of store
@@ -36,10 +50,26 @@ function readStore(customPath) {
   const dirPath = path.dirname(filePath);
 
   if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+    try {
+      fs.mkdirSync(dirPath, { recursive: true });
+    } catch {}
   }
 
   if (!fs.existsSync(filePath)) {
+    // If running with a dedicated DATA_DIR mount in production and the file does not exist,
+    // seed initial data from DEFAULT_DATA_FILE if available so demonstration data persists.
+    if (process.env.DATA_DIR && !process.env.DATA_FILE_PATH && filePath !== DEFAULT_DATA_FILE && fs.existsSync(DEFAULT_DATA_FILE)) {
+      try {
+        const seedContent = fs.readFileSync(DEFAULT_DATA_FILE, 'utf8');
+        const parsedSeed = JSON.parse(seedContent);
+        cachedStore = {
+          users: Array.isArray(parsedSeed.users) ? parsedSeed.users : [],
+          portfolios: Array.isArray(parsedSeed.portfolios) ? parsedSeed.portfolios : []
+        };
+        persistStoreSync(cachedStore, filePath);
+        return cachedStore;
+      } catch {}
+    }
     cachedStore = { users: [], portfolios: [] };
     persistStoreSync(cachedStore, filePath);
     return cachedStore;
@@ -937,6 +967,7 @@ export function cleanupOldLoginAttempts(olderThanMs = 60 * 60 * 1000) {
 
 export default {
   getDatabase,
+  getDataFilePath,
   closeDatabase,
   applyMigrations,
   getUserById,

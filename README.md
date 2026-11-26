@@ -112,12 +112,54 @@ npm run dev
 ### 3. Build & Run for Production
 ```bash
 npm run build
-npm run start
+npm start
 ```
-The native Node.js HTTP server will serve both the compiled frontend single-page application and the `/api` endpoints simultaneously on `http://localhost:5050`.
+The native Node.js HTTP server will serve both the compiled frontend single-page application and the `/api` endpoints simultaneously on `http://0.0.0.0:5050`.
 
 ### 4. Run Automated Tests
 ```bash
 npm test
 ```
-"# frontend-project" 
+
+---
+
+## Full-Stack Deployment on Render (One Web Service)
+
+This application is designed to run as **one consolidated Node.js Web Service** on Render, serving the built frontend assets (`dist/`) and all native backend API routes (`/api/*`) from the same origin.
+
+### Render Configuration Summary
+
+| Setting | Value | Notes |
+| :--- | :--- | :--- |
+| **Environment** | `Node` | Node.js runtime (v20+ or v24 recommended) |
+| **Build Command** | `npm install && npm run build` | Compiles Vite frontend with base `/` to `dist/` |
+| **Start Command** | `npm start` | Launches native Node.js production server |
+| **Health Check Path** | `/api/health` | Validates HTTP 200 JSON health response |
+
+### Required Environment Variables
+
+Configure these in **Render Dashboard > Environment**:
+
+| Variable | Description | Example / Default |
+| :--- | :--- | :--- |
+| `NODE_ENV` | Enforces production security checks | `production` |
+| `HOST` | Bind address (Render container interface) | `0.0.0.0` |
+| `DATA_DIR` | Dedicated storage directory for persistent disk | `/var/data` |
+| `ADMIN_USERNAME` | Administrator login username | `admin_1234` |
+| `ADMIN_PASSWORD` | Administrator login password (min 8 chars) | *(Set a strong secret)* |
+| `SESSION_SECRET` | 32+ character cryptographically secure secret | *(Generate with openssl)* |
+
+### Persistent Disk Requirement
+
+> [!IMPORTANT]
+> Render container filesystems are **ephemeral** by default. Any files written directly to the container root will be erased on every redeploy, restart, or instance migration.
+>
+> To persist registered student accounts, custom portfolios, and publishing state:
+> 1. Go to your Render Web Service settings > **Disks** > **Add Disk**.
+> 2. **Name**: `portfolio-data`
+> 3. **Mount Path**: `/var/data`
+> 4. **Size**: `1 GB` (or larger)
+> 5. Ensure the `DATA_DIR` environment variable is set to `/var/data`.
+>
+> The database module will automatically write and persist to `/var/data/portfolio-data.json`.
+
