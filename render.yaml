@@ -1,0 +1,30 @@
+# ==============================================================================
+# Render Blueprint Specification (render.yaml)
+# Single Full-Stack Web Service with Persistent Disk
+# ==============================================================================
+services:
+  - type: web
+    name: personal-portfolio
+    runtime: node
+    plan: starter # Note: Persistent Disks on Render require Starter tier or higher
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    disk:
+      name: portfolio-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: DATA_DIR
+        value: /var/data
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
